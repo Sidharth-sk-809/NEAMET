@@ -4,26 +4,61 @@ from sqlalchemy import func
 from . import models
 
 
+# ================= USER =================
+
 def verify_user(db: Session, user_id: str, password: str):
     return (
         db.query(models.User)
-        .filter(models.User.id == user_id, models.User.password == password)
+        .filter(
+            models.User.id == user_id,
+            models.User.password == password
+        )
         .first()
     )
 
+
+# ================= PRODUCTS =================
 
 def search_products(db: Session, query: str, max_range: int):
     return (
         db.query(models.Product)
         .join(models.Shop)
-        .filter(func.lower(models.Product.name).contains(query.lower()))
+        .filter(
+            func.lower(models.Product.name)
+            .contains(query.lower())
+        )
         .filter(models.Shop.distance_km <= max_range)
-        .order_by(models.Shop.distance_km.asc(), models.Product.name.asc())
+        .order_by(
+            models.Shop.distance_km.asc(),
+            models.Product.name.asc()
+        )
         .all()
     )
 
 
-def add_to_cart(db: Session, customer_id: str, product_id: int, quantity: int):
+# ✅ NEW ENDPOINT SUPPORT
+# Used by: GET /products?range=
+def get_products_by_range(db: Session, max_range: int):
+    return (
+        db.query(models.Product)
+        .join(models.Shop)
+        .filter(models.Shop.distance_km <= max_range)
+        .order_by(
+            models.Shop.distance_km.asc(),
+            models.Product.name.asc()
+        )
+        .all()
+    )
+
+
+# ================= CART =================
+
+def add_to_cart(
+    db: Session,
+    customer_id: str,
+    product_id: int,
+    quantity: int
+):
     existing_item = (
         db.query(models.CartItem)
         .filter(
@@ -32,6 +67,7 @@ def add_to_cart(db: Session, customer_id: str, product_id: int, quantity: int):
         )
         .first()
     )
+
     if existing_item:
         existing_item.quantity += quantity
         db.commit()
@@ -43,6 +79,7 @@ def add_to_cart(db: Session, customer_id: str, product_id: int, quantity: int):
         product_id=product_id,
         quantity=quantity,
     )
+
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
@@ -58,9 +95,14 @@ def get_cart_items(db: Session, customer_id: str):
 
 
 def clear_cart(db: Session, customer_id: str):
-    db.query(models.CartItem).filter(models.CartItem.customer_id == customer_id).delete()
+    db.query(models.CartItem)\
+        .filter(models.CartItem.customer_id == customer_id)\
+        .delete()
+
     db.commit()
 
+
+# ================= ORDERS =================
 
 def create_order(
     db: Session,
@@ -79,9 +121,11 @@ def create_order(
         total_distance=total_distance,
         status="waiting_for_employee",
     )
+
     db.add(order)
     db.commit()
     db.refresh(order)
+
     return order
 
 
@@ -94,31 +138,46 @@ def add_order_items(db: Session, order_id: int, cart_items):
                 quantity=item.quantity,
             )
         )
+
     db.commit()
 
 
 def get_available_orders(db: Session):
     return (
         db.query(models.Order)
-        .filter(models.Order.status == "waiting_for_employee")
+        .filter(
+            models.Order.status == "waiting_for_employee"
+        )
         .order_by(models.Order.id.asc())
         .all()
     )
 
 
 def accept_order(db: Session, order_id: int, employee_id: str):
-    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    order = (
+        db.query(models.Order)
+        .filter(models.Order.id == order_id)
+        .first()
+    )
+
     if not order:
         return None
+
     if order.status != "waiting_for_employee":
         return order
 
     order.employee_id = employee_id
     order.status = "out_for_delivery"
+
     db.commit()
     db.refresh(order)
+
     return order
 
 
 def get_order_by_id(db: Session, order_id: int):
-    return db.query(models.Order).filter(models.Order.id == order_id).first()
+    return (
+        db.query(models.Order)
+        .filter(models.Order.id == order_id)
+        .first()
+    )
