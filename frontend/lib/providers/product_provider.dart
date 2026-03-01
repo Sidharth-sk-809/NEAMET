@@ -25,7 +25,7 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _products = await _apiService.getAllProducts();
+      _products = await _apiService.getAllProducts(range: 2);
       _searchResults = _products;
       _isLoading = false;
       notifyListeners();
