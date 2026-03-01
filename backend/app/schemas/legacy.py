@@ -1,5 +1,6 @@
-from typing import List, Optional
+"""Legacy schemas for auth, products, and cart."""
 
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 

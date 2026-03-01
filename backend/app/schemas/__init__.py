@@ -1,11 +1,25 @@
-"""Schemas package for NEAMET backend - Order Management.
+"""Schemas package for NEAMET backend - Legacy & Order Management."""
 
-For legacy schemas (LoginRequest, etc.), import directly from app.schemas module.
-"""
+# Legacy schemas (auth, products, cart)
+from app.schemas.legacy import (
+    LoginRequest,
+    LoginResponse,
+    ProductSearchItem,
+    ProductSearchResponse,
+    CartAddRequest,
+    CartItemView,
+    CartResponse,
+    OrderCreateRequest,
+    OrderCreateResponse,
+    OrderSummary,
+    OrderAcceptRequest,
+    OrderStatusResponse,
+)
 
+# Order management schemas
 from app.schemas.order import (
     OrderCreate,
-    OrderCreateResponse,
+    OrderCreateResponse as OrderCreateResponseNew,
     OrderResponse,
     OrderItemCreate,
     OrderItemResponse,
@@ -13,8 +27,22 @@ from app.schemas.order import (
 )
 
 __all__ = [
-    "OrderCreate",
+    # Legacy schemas
+    "LoginRequest",
+    "LoginResponse",
+    "ProductSearchItem",
+    "ProductSearchResponse",
+    "CartAddRequest",
+    "CartItemView",
+    "CartResponse",
+    "OrderCreateRequest",
     "OrderCreateResponse",
+    "OrderSummary",
+    "OrderAcceptRequest",
+    "OrderStatusResponse",
+    # Order management schemas
+    "OrderCreate",
+    "OrderCreateResponseNew",
     "OrderResponse",
     "OrderItemCreate",
     "OrderItemResponse",
