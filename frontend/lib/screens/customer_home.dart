@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../widgets/product_card.dart';
 import '../widgets/loading_shimmer.dart';
 import '../widgets/custom_error_widget.dart';
+import '../utils/product_image.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({Key? key}) : super(key: key);

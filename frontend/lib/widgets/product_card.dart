@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/product_model.dart';
 import '../utils/theme.dart';
 import '../utils/constants.dart';
@@ -13,6 +14,23 @@ class ProductCard extends StatelessWidget {
     required this.onAddTap,
   }) : super(key: key);
 
+  Future<String> _getProductImage() async {
+    // 1️⃣ If backend image exists → use it
+    if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      return product.imageUrl!;
+    }
+
+    // 2️⃣ Otherwise check assets
+    final imagePath = "assets/products/${product.name}.png";
+
+    try {
+      await rootBundle.load(imagePath);
+      return imagePath;
+    } catch (e) {
+      return "assets/products/General.png";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -25,28 +43,53 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Image
+
+          /// ✅ PRODUCT IMAGE SECTION
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(AppTheme.radiusXLarge),
               topRight: Radius.circular(AppTheme.radiusXLarge),
             ),
-            child: Container(
+            child: SizedBox(
               width: double.infinity,
               height: 160,
-              color: AppTheme.surfaceColor,
-              child: product.imageUrl != null
-                  ? Image.network(
-                      product.imageUrl!,
+              child: FutureBuilder<String>(
+                future: _getProductImage(),
+                builder: (context, snapshot) {
+
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  }
+
+                  final imagePath = snapshot.data!;
+
+                  // If it starts with http → network image
+                  if (imagePath.startsWith("http")) {
+                    return Image.network(
+                      imagePath,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildPlaceholder();
+                      errorBuilder: (_, __, ___) {
+                        return Image.asset(
+                          "assets/products/General.png",
+                          fit: BoxFit.cover,
+                        );
                       },
-                    )
-                  : _buildPlaceholder(),
+                    );
+                  }
+
+                  // Otherwise → asset image
+                  return Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                  );
+                },
+              ),
             ),
           ),
-          // Content
+
+          /// ✅ CONTENT SECTION
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.spacingMedium),
@@ -54,6 +97,7 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+
                   // Product info
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,12 +116,16 @@ class ProductCard extends StatelessWidget {
                       const SizedBox(height: AppTheme.spacingXSmall),
                       Text(
                         product.shopCategory,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
                               color: AppTheme.textSecondary,
                             ),
                       ),
                     ],
                   ),
+
                   // Price and button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -103,16 +151,19 @@ class ProductCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppTheme.lightGreen,
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusSmall),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusSmall,
+                              ),
                             ),
                             child: Text(
                               AppConstants.formatDistance(product.distance),
-                              style:
-                                  Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppTheme.primaryGreen,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppTheme.primaryGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                           ),
                         ],
@@ -126,8 +177,9 @@ class ProductCard extends StatelessWidget {
                             vertical: AppTheme.spacingSmall,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusLarge),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusLarge,
+                            ),
                           ),
                         ),
                         child: const Text('Add'),
@@ -139,19 +191,6 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      color: AppTheme.surfaceColor,
-      child: const Center(
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          color: AppTheme.textSecondary,
-          size: 40,
-        ),
       ),
     );
   }
