@@ -16,22 +16,31 @@ class AuthProvider extends ChangeNotifier {
   bool get isCustomer => _currentUser?.role == 'customer';
   bool get isEmployee => _currentUser?.role == 'employee';
 
-  Future<bool> login(String email, String password) async {
+  // ✅ FIXED LOGIN
+  Future<bool> login(String id, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.login(email, password);
-      
-      if (response['user'] != null) {
-        _currentUser = User.fromJson(response['user']);
+      final response = await _apiService.login(id, password);
+
+      print("LOGIN RESPONSE:");
+      print(response);
+
+      // ✅ backend returns flat JSON
+      if (response['id'] != null &&
+          response['role'] != null) {
+
+        _currentUser = User.fromJson(response);
+
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
         throw Exception('Invalid login response');
       }
+
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _isLoading = false;
