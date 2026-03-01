@@ -74,11 +74,14 @@ class Cart {
 
   double get totalDistance {
     if (items.isEmpty) return 0;
-    Set<String> shops = {};
+    // Get the maximum distance among all unique shops
+    double maxDistance = 0;
     for (var item in items) {
-      shops.add(item.product.shopName);
+      if (item.product.distance > maxDistance) {
+        maxDistance = item.product.distance;
+      }
     }
-    return items.first.product.distance * shops.length;
+    return maxDistance;
   }
 
   double get deliveryCost => totalDistance * 10;

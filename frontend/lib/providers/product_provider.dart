@@ -68,9 +68,9 @@ class ProductProvider extends ChangeNotifier {
 
     try {
       if (_searchQuery.isEmpty) {
-        _searchResults = _products
-            .where((p) => p.distance <= range)
-            .toList();
+        // Fetch fresh products for the selected distance range
+        _products = await _apiService.getAllProducts(range: range);
+        _searchResults = _products;
       } else {
         _searchResults = await _apiService.searchProducts(
           _searchQuery,

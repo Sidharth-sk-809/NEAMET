@@ -56,7 +56,7 @@ def _build_cart_response(db: Session, customer_id: str):
             )
         )
 
-    total_distance = sum(unique_shop_distances.values())
+    total_distance = max(unique_shop_distances.values()) if unique_shop_distances else 0
     delivery_cost = total_distance * 10
 
     return schemas.CartResponse(
