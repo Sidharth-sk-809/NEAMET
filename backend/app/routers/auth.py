@@ -7,7 +7,7 @@ from ..database import get_db
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=schemas.LoginResponse)
+@router.post("/login")
 def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = crud.verify_user(db, payload.user_id, payload.password)
     if not user:
