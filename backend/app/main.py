@@ -5,7 +5,7 @@ from fastapi import Request
 
 from .database import Base, engine
 # Import all models to register them with Base
-from .models import Order, OrderItem
+from .models import Order
 from .routers import auth, cart, orders, products
 
 app = FastAPI(title="NEAMET Prototype Backend")
