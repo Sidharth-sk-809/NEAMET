@@ -1,4 +1,7 @@
-"""Schemas package for NEAMET backend."""
+"""Schemas package for NEAMET backend - Order Management.
+
+For legacy schemas (LoginRequest, etc.), import directly from app.schemas module.
+"""
 
 from app.schemas.order import (
     OrderCreate,

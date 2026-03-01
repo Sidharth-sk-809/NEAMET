@@ -6,7 +6,10 @@ from fastapi import Request
 from .database import Base, engine
 # Import all models to register them with Base
 from .models import Order
-from .routers import auth, cart, orders, products
+from .routers.auth import router as auth_router
+from .routers.cart import router as cart_router
+from .routers.orders import router as orders_router
+from .routers.products import router as products_router
 
 app = FastAPI(title="NEAMET Prototype Backend")
 
@@ -30,10 +33,10 @@ async def generic_exception_handler(_: Request, __: Exception):
     return JSONResponse(status_code=500, content={"detail": "Server issue"})
 
 
-app.include_router(auth.router)
-app.include_router(products.router)
-app.include_router(cart.router)
-app.include_router(orders.router)
+app.include_router(auth_router)
+app.include_router(products_router)
+app.include_router(cart_router)
+app.include_router(orders_router)
 
 
 @app.get("/")
