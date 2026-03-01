@@ -8,7 +8,12 @@ from .routers import auth, cart, orders, products
 
 app = FastAPI(title="NEAMET Prototype Backend")
 
-# Prototype CORS setup. For production, restrict allowed origins.
+# ✅ CREATE TABLES AUTOMATICALLY
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,10 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-#@app.on_event("startup")
-#def on_startup():
- #   Base.metadata.create_all(bind=engine)
 
 
 @app.exception_handler(Exception)
