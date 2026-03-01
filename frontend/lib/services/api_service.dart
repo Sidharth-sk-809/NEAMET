@@ -6,241 +6,157 @@ import '../models/order_model.dart';
 class ApiService {
   static const String baseUrl = 'https://neamet-backend.onrender.com';
 
-  // ==============================
-  // AUTHENTICATION
-  // ==============================
+  // ================= LOGIN =================
 
   Future<Map<String, dynamic>> login(String id, String password) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id': id,
-              'password': password,
-            }),
-          )
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'id': id,
+        'password': password,
+      }),
+    );
 
-      print("LOGIN STATUS: ${response.statusCode}");
-      print("LOGIN RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Invalid credentials');
-      }
-    } catch (e) {
-      throw Exception('Login Error: $e');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Login failed');
     }
   }
 
-  // ==============================
-  // PRODUCTS
-  // ==============================
+  // ================= PRODUCTS =================
 
   Future<List<Product>> searchProducts(String query,
       {int range = 2}) async {
-    try {
-      final response = await http
-          .get(
-            Uri.parse(
-                '$baseUrl/products/search?q=$query&range=$range'),
-          )
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response = await http.get(
+      Uri.parse('$baseUrl/products/search?q=$query&range=$range'),
+    );
 
-      print("SEARCH STATUS: ${response.statusCode}");
-      print("SEARCH RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Adjust depending on backend response format
-        final List<dynamic> products = data is List
-            ? data
-            : data['products'] ?? [];
-
-        return products.map((p) => Product.fromJson(p)).toList();
-      } else {
-        throw Exception('Failed to search products');
-      }
-    } catch (e) {
-      throw Exception('Search Error: $e');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<dynamic> products =
+          data is List ? data : data['products'] ?? [];
+      return products.map((p) => Product.fromJson(p)).toList();
+    } else {
+      throw Exception('Failed to search products');
     }
   }
 
-  // ==============================
-  // CART
-  // ==============================
+  Future<List<Product>> getAllProducts() async {
+    final response =
+        await http.get(Uri.parse('$baseUrl/products'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<dynamic> products =
+          data is List ? data : data['products'] ?? [];
+      return products.map((p) => Product.fromJson(p)).toList();
+    } else {
+      throw Exception('Failed to fetch products');
+    }
+  }
+
+  // ================= CART =================
 
   Future<Map<String, dynamic>> getCart(String customerId) async {
-    try {
-      final response = await http
-          .get(Uri.parse('$baseUrl/cart/$customerId'))
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response =
+        await http.get(Uri.parse('$baseUrl/cart/$customerId'));
 
-      print("CART STATUS: ${response.statusCode}");
-      print("CART RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to fetch cart');
-      }
-    } catch (e) {
-      throw Exception('Cart Error: $e');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch cart');
     }
   }
 
-  // ==============================
-  // CREATE ORDER
-  // ==============================
+  // ================= CREATE ORDER =================
 
-  Future<Map<String, dynamic>> createOrder({
-    required String customerId,
-    required List<Map<String, dynamic>> items,
-    required double totalProductCost,
-    required double totalDistance,
-    required double deliveryCost,
-  }) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/order/create'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'customer_id': customerId,
-              'items': items,
-              'total_product_cost': totalProductCost,
-              'total_distance': totalDistance,
-              'delivery_cost': deliveryCost,
-            }),
-          )
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+  Future<Map<String, dynamic>> createOrder(
+    String customerId,
+    List<Map<String, dynamic>> items,
+    double totalAmount,
+    double deliveryDistance,
+    double deliveryCost,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/order/create'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'customer_id': customerId,
+        'items': items,
+        'total_product_cost': totalAmount,
+        'total_distance': deliveryDistance,
+        'delivery_cost': deliveryCost,
+      }),
+    );
 
-      print("CREATE ORDER STATUS: ${response.statusCode}");
-      print("CREATE ORDER RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200 ||
-          response.statusCode == 201) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to create order');
-      }
-    } catch (e) {
-      throw Exception('Create Order Error: $e');
+    if (response.statusCode == 200 ||
+        response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create order');
     }
   }
 
-  // ==============================
-  // ORDER STATUS (CUSTOMER)
-  // ==============================
+  // ================= ORDER STATUS =================
 
   Future<Order> getOrderStatus(String orderId) async {
-    try {
-      final response = await http
-          .get(Uri.parse('$baseUrl/order/status/$orderId'))
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response = await http
+        .get(Uri.parse('$baseUrl/order/status/$orderId'));
 
-      print("ORDER STATUS: ${response.statusCode}");
-      print("ORDER RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Order.fromJson(data['order'] ?? data);
-      } else {
-        throw Exception('Failed to fetch order status');
-      }
-    } catch (e) {
-      throw Exception('Order Status Error: $e');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return Order.fromJson(data['order'] ?? data);
+    } else {
+      throw Exception('Failed to fetch order status');
     }
   }
 
-  // ==============================
-  // EMPLOYEE - AVAILABLE ORDERS
-  // ==============================
+  // ================= EMPLOYEE =================
 
   Future<List<AvailableOrder>> getAvailableOrders() async {
-    try {
-      final response = await http
-          .get(Uri.parse('$baseUrl/orders/available'))
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response =
+        await http.get(Uri.parse('$baseUrl/orders/available'));
 
-      print("AVAILABLE ORDERS STATUS: ${response.statusCode}");
-      print("AVAILABLE ORDERS RESPONSE: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> orders =
-            data is List ? data : data['orders'] ?? [];
-
-        return orders
-            .map((o) => AvailableOrder.fromJson(o))
-            .toList();
-      } else {
-        throw Exception('Failed to fetch available orders');
-      }
-    } catch (e) {
-      throw Exception('Available Orders Error: $e');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<dynamic> orders =
+          data is List ? data : data['orders'] ?? [];
+      return orders
+          .map((o) => AvailableOrder.fromJson(o))
+          .toList();
+    } else {
+      throw Exception('Failed to fetch available orders');
     }
   }
-
-  // ==============================
-  // EMPLOYEE - ACCEPT ORDER
-  // ==============================
 
   Future<Map<String, dynamic>> acceptOrder(
       String orderId, String employeeId) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/orders/accept/$orderId'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'employee_id': employeeId,
-            }),
-          )
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () =>
-                throw Exception('Server timeout (Render may be waking up)'),
-          );
+    final response = await http.post(
+      Uri.parse('$baseUrl/orders/accept/$orderId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'employee_id': employeeId,
+      }),
+    );
 
-      print("ACCEPT ORDER STATUS: ${response.statusCode}");
-      print("ACCEPT ORDER RESPONSE: ${response.body}");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to accept order');
+    }
+  }
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to accept order');
-      }
-    } catch (e) {
-      throw Exception('Accept Order Error: $e');
+  Future<Order> getActiveDelivery(String employeeId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/delivery/active/$employeeId'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return Order.fromJson(data['order'] ?? data);
+    } else {
+      throw Exception('No active delivery');
     }
   }
 }
