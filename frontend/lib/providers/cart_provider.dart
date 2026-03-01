@@ -6,7 +6,6 @@ class CartProvider extends ChangeNotifier {
   Cart _cart = Cart();
 
   Cart get cart => _cart;
-  List<ShopGroup> get groupedByShop => _cart.groupedByShop;
   int get itemCount => _cart.itemCount;
   double get totalProductPrice => _cart.totalProductPrice;
   double get totalDistance => _cart.totalDistance;

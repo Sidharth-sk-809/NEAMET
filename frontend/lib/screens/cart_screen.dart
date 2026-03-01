@@ -5,7 +5,7 @@ import '../providers/order_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/theme.dart';
 import '../utils/constants.dart';
-import '../widgets/shop_group_widget.dart';
+import '../widgets/cart_item_widget.dart';
 import '../widgets/summary_card.dart';
 
 class CartScreen extends StatelessWidget {
@@ -54,23 +54,27 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppTheme.spacingLarge),
               child: Column(
                 children: [
-                  // Cart items grouped by shop
-                  ...cartProvider.groupedByShop.map((shopGroup) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: AppTheme.spacingLarge,
-                      ),
-                      child: ShopGroupWidget(
-                        shopGroup: shopGroup,
-                        onQuantityChanged: (productId, quantity) {
-                          cartProvider.updateQuantity(productId, quantity);
+                  // Cart items listed one after another
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: cartProvider.cart.items.length,
+                    separatorBuilder: (context, index) => const SizedBox(
+                      height: AppTheme.spacingMedium,
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = cartProvider.cart.items[index];
+                      return CartItemWidget(
+                        item: item,
+                        onQuantityChanged: (quantity) {
+                          cartProvider.updateQuantity(item.product.id, quantity);
                         },
-                        onRemove: (productId) {
-                          cartProvider.removeFromCart(productId);
+                        onRemove: () {
+                          cartProvider.removeFromCart(item.product.id);
                         },
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    },
+                  ),
                   
                   const SizedBox(height: AppTheme.spacingXLarge),
                   
